@@ -1,0 +1,30 @@
+import { afterAll,afterEach,describe,expect,it,vi } from "vitest";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import sharp from "sharp";
+const folder=await fs.mkdtemp(path.join(os.tmpdir(),"cw-image-test-"));
+process.env.DATA_DIR=folder;process.env.APP_SECRET="test-only-long-secret";
+vi.mock("@/lib/llm",()=>({assertPublicUrl:async(url:string)=>new URL(url)}));
+const {db}=await import("@/lib/db");
+const {saveImage}=await import("@/lib/images");
+const {createItem,getItem,updateItem,itemInputSchema,deleteItem}=await import("@/lib/items");
+const {cartoonize,saveImageConfig,imageConfig}=await import("@/lib/image-model");
+const uid=crypto.randomUUID();db().prepare("INSERT INTO users VALUES (?,?,?,?,?)").run(uid,"image@test.com","tester","hash",Date.now());
+const input=await sharp({create:{width:32,height:32,channels:4,background:{r:100,g:180,b:130,alpha:0}}}).png().toBuffer();
+const original=await saveImage(uid,input);
+afterEach(()=>vi.unstubAllGlobals());
+afterAll(async()=>{db().close();await fs.rm(folder,{recursive:true,force:true});});
+describe("originals and cartoon images",()=>{
+ it("saves original and artwork separately without losing legacy fields",async ()=>{const item=await createItem(uid,itemInputSchema.parse({name:"衬衫",category:"top",image:original,cartoonImage:original}));expect((await getItem(uid,item.id))?.cartoonImage).toBe(original);await updateItem(uid,item.id,itemInputSchema.parse({...item,name:"新名称"}));expect((await getItem(uid,item.id))?.image).toBe(original);await deleteItem(uid,item.id);expect(db().prepare("SELECT * FROM item_art WHERE item_id=?").get(item.id)).toBeUndefined();});
+ it("retains all three images and display preference across updates",async ()=>{
+  const item=await createItem(uid,itemInputSchema.parse({name:"裤子",category:"bottom",image:original,cutoutImage:original,cartoonImage:original,imageMode:"cutout"}));
+  expect((await getItem(uid,item.id))?.imageMode).toBe("cutout");expect((await getItem(uid,item.id))?.cutoutImage).toBe(original);
+  await updateItem(uid,item.id,itemInputSchema.parse({...item,imageMode:"original"}));const saved=(await getItem(uid,item.id))!;expect(saved.image).toBe(original);expect(saved.cutoutImage).toBe(original);expect(saved.cartoonImage).toBe(original);expect(saved.imageMode).toBe("original");
+ });
+ it("does not expose encrypted API keys",async ()=>{await saveImageConfig(uid,{provider:"openai",baseUrl:"https://model.test/v1",model:"mock-image",apiKey:"secret-key"});expect(await imageConfig(uid)).not.toHaveProperty("apiKey");expect(JSON.stringify(db().prepare("SELECT * FROM image_configs").get())).not.toContain("secret-key");});
+ it("sends original as an image-edit upload and preserves transparency",async()=>{const fn=vi.fn(async(_url:unknown,req?:RequestInit)=>{expect(req?.body).toBeInstanceOf(FormData);expect((req?.body as FormData).get("image")).toBeInstanceOf(Blob);expect(String((req?.body as FormData).get("prompt"))).toContain("DOLL ALIGNMENT GUIDE");return Response.json({data:[{b64_json:input.toString("base64")}]});});vi.stubGlobal("fetch",fn);const result=await cartoonize(uid,original);expect(result).not.toBe(original);expect(fn).toHaveBeenCalledTimes(1);const image=await sharp(path.join(folder,"uploads",result)).metadata();expect(image.hasAlpha).toBe(true);});
+ it("handles Gemini inline image responses",async()=>{await saveImageConfig(uid,{provider:"gemini",baseUrl:"https://model.test/v1beta",model:"mock-image"});vi.stubGlobal("fetch",vi.fn(async(_url:unknown,req?:RequestInit)=>{const body=JSON.parse(req?.body as string);expect(body.contents[0].parts[0].text).toContain("x=61, y=116, width=118, height=103");return Response.json({candidates:[{content:{parts:[{inlineData:{data:input.toString("base64")}}]}}]});}));expect(await cartoonize(uid,original,"top")).toMatch(/\.webp$/);});
+ it("rejects access to another user's original",async()=>await expect(cartoonize(crypto.randomUUID(),original)).rejects.toThrow("原图不存在"));
+ it("does not replace the original if the model returns text",async()=>{vi.stubGlobal("fetch",vi.fn(async()=>Response.json({candidates:[{content:{parts:[{text:"done"}]}}]})));await expect(cartoonize(uid,original)).rejects.toThrow("没有返回图片");expect(await fs.readFile(path.join(folder,"uploads",original))).toBeTruthy();});
+});

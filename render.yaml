@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: cream-wardrobe
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:cloud
+    healthCheckPath: /api/health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_VERSION
+        value: 24.13.1
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: APP_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_CA_CERT
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: wardrobe-images
+      - key: STORAGE_PROVIDER
+        value: supabase
+      - key: SEGMENTATION_ENABLED
+        value: "0"
+      - key: REGISTRATION_INVITE_CODE
+        sync: false
+      - key: MAX_USERS
+        value: "2"

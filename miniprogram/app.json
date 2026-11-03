@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/wardrobe/index",
+    "pages/login/index",
+    "pages/edit/index",
+    "pages/outfits/index",
+    "pages/body/index",
+    "pages/settings/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "奶油衣柜",
+    "navigationBarBackgroundColor": "#fff8ee",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff8ee"
+  },
+  "tabBar": {
+    "color": "#8c7563",
+    "selectedColor": "#514137",
+    "backgroundColor": "#fff8ee",
+    "list": [
+      {
+        "pagePath": "pages/wardrobe/index",
+        "text": "衣柜"
+      },
+      {
+        "pagePath": "pages/outfits/index",
+        "text": "搭配"
+      },
+      {
+        "pagePath": "pages/body/index",
+        "text": "身材"
+      },
+      {
+        "pagePath": "pages/settings/index",
+        "text": "设置"
+      }
+    ]
+  },
+  "permission": {},
+  "__usePrivacyCheck__": true,
+  "networkTimeout": {
+    "request": 125000,
+    "uploadFile": 60000,
+    "downloadFile": 60000
+  }
+}

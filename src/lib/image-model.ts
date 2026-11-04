@@ -7,8 +7,8 @@ import { categoryLabel, type Category } from "./constants";
 import { HttpError } from "./auth";
 import { assertPublicUrl } from "./llm";
 import { downloadImage, imagePath, readStoredImage, MAX_UPLOAD_BYTES, saveImage } from "./images";
-export const imageConfigSchema=z.object({provider:z.enum(["openai","gemini"]),baseUrl:z.string().trim().url().max(300),model:z.string().trim().min(1,"请填写图片编辑模型").max(120),apiKey:z.string().trim().max(500).optional()});
-type ImageConfig={provider:"openai"|"gemini";baseUrl:string;model:string;apiKey?:string|null};
+export const imageConfigSchema=z.object({provider:z.enum(["openai","gemini","dashscope"]),baseUrl:z.string().trim().url().max(300),model:z.string().trim().min(1,"请填写图片编辑模型").max(120),apiKey:z.string().trim().max(500).optional()});
+type ImageConfig={provider:"openai"|"gemini"|"dashscope";baseUrl:string;model:string;apiKey?:string|null};
 export async function imageConfig(userId:string,secret=false) {
  const r=await db().prepare("SELECT * FROM image_configs WHERE user_id=?").get(userId) as {provider:ImageConfig["provider"];base_url:string;model:string;api_key_enc:string|null}|undefined;
  if(!r)return null;
@@ -27,7 +27,11 @@ export async function cartoonize(userId:string,key:string,category?:Category){
  const cfg=await imageConfig(userId,true);if(!cfg)throw new HttpError(400,"先到设置中配置「卡通图片模型」，需要支持图片编辑的模型");
  const base=cfg.baseUrl.replace(/\/+$/,"");const signal=AbortSignal.timeout(120_000);
  let url:string,body:BodyInit,headers:Record<string,string>;
- if(cfg.provider==="gemini"){
+ if(cfg.provider==="dashscope"){
+  url=`${base}/services/aigc/multimodal-generation/generation`;
+  headers={"Content-Type":"application/json",...(cfg.apiKey?{Authorization:`Bearer ${cfg.apiKey}`}:{})};
+  body=JSON.stringify({model:cfg.model,input:{messages:[{role:"user",content:[{image:`data:image/webp;base64,${input.toString("base64")}`},{text:prompt}]}]},parameters:{n:1,watermark:false,prompt_extend:false}});
+ }else if(cfg.provider==="gemini"){
   url=`${base}/models/${encodeURIComponent(cfg.model)}:generateContent`;
   headers={"Content-Type":"application/json",...(cfg.apiKey?{"x-goog-api-key":cfg.apiKey}:{})};
   body=JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:"image/webp",data:input.toString("base64")}}]}],generationConfig:{responseModalities:["TEXT","IMAGE"]}});
@@ -44,13 +48,18 @@ export async function cartoonize(userId:string,key:string,category?:Category){
  const chunks:Uint8Array[]=[];let bytes=0;
  try{while(true){const {done,value}=await reader.read();if(done)break;bytes+=value.length;if(bytes>24*1024*1024){await reader.cancel();throw new HttpError(502,"模型返回的图片过大");}chunks.push(value);}}finally{reader.releaseLock();}
  let data;try{data=JSON.parse(Buffer.concat(chunks).toString());}catch{throw new HttpError(502,"图片接口未返回有效内容");}
- if(!res.ok)throw new HttpError(502,`图片模型返回错误 (${res.status})：${String(data.error?.message || "请检查模型和接口是否支持图片编辑").slice(0,200)}`);
+ if(!res.ok)throw new HttpError(502,`图片模型返回错误 (${res.status})：${String(data.error?.message || data.message || "请检查模型和接口是否支持图片编辑").slice(0,200)}`);
  let b64:string|undefined;
  if(cfg.provider==="gemini"){
   const parts=data.candidates?.[0]?.content?.parts as {inlineData?:{data?:string};inline_data?:{data?:string}}[]|undefined;
   b64=parts?.find(p=>p.inlineData?.data || p.inline_data?.data)?.inlineData?.data || parts?.find(p=>p.inline_data?.data)?.inline_data?.data;
  }else b64=data.data?.[0]?.b64_json;
  if(b64){const buf=Buffer.from(b64,"base64");if(buf.length>MAX_UPLOAD_BYTES)throw new HttpError(502,"生成图片过大");return saveImage(userId,buf);}
+ if(cfg.provider==="dashscope"){
+  const parts=data.output?.choices?.[0]?.message?.content as {image?:string}[]|undefined;
+  const image=parts?.find(p=>typeof p.image==="string")?.image;
+  if(image)return downloadImage(userId,image,undefined,signal);
+ }
  if(cfg.provider==="openai" && typeof data.data?.[0]?.url==="string")return downloadImage(userId,data.data[0].url,undefined,signal);
  throw new HttpError(502,"该模型没有返回图片。请使用支持图生图的模型，文字识别模型不能用于卡通化");
 }

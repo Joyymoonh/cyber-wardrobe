@@ -28,3 +28,15 @@ describe("originals and cartoon images",()=>{
  it("rejects access to another user's original",async()=>await expect(cartoonize(crypto.randomUUID(),original)).rejects.toThrow("原图不存在"));
  it("does not replace the original if the model returns text",async()=>{vi.stubGlobal("fetch",vi.fn(async()=>Response.json({candidates:[{content:{parts:[{text:"done"}]}}]})));await expect(cartoonize(uid,original)).rejects.toThrow("没有返回图片");expect(await fs.readFile(path.join(folder,"uploads",original))).toBeTruthy();});
 });
+
+it("uses the native Alibaba image edit contract and reports quota errors",async()=>{
+ await saveImageConfig(uid,{provider:"dashscope",baseUrl:"https://dashscope.test/api/v1",model:"qwen-image-2.0",apiKey:"test-key"});
+ vi.stubGlobal("fetch",vi.fn(async(url:unknown,req?:RequestInit)=>{
+  expect(String(url).endsWith("/services/aigc/multimodal-generation/generation")).toBe(true);
+  const body=JSON.parse(String(req?.body));
+  expect(body.input.messages[0].content[0].image).toMatch(/^data:image\/webp;base64,/);
+  expect(body.parameters.n).toBe(1);
+  return Response.json({message:"free quota exhausted"},{status:403});
+ }));
+ await expect(cartoonize(uid,original,"top")).rejects.toThrow("free quota exhausted");
+});

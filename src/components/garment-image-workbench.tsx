@@ -11,7 +11,7 @@ type Props={draft:ItemDraft;disabled:boolean;onChange:(patch:Partial<ItemDraft>)
 type ExtractResult={image:string;mask:string;width:number;height:number;notice:string};
 export function GarmentImageWorkbench({draft,disabled,onChange,onBusy}:Props){
  const [segmentation,setSegmentation]=useState<boolean|null>(null);
- useEffect(()=>{let active=true;api<{segmentation:boolean}>("/api/capabilities").then(r=>{if(active)setSegmentation(r.segmentation);}).catch(()=>{if(active)setSegmentation(false);});return()=>{active=false;};},[]);
+ useEffect(()=>{let active=true;api<{segmentation:boolean}>("/api/capabilities").then(r=>{if(active)setSegmentation(r.segmentation || typeof Worker!=="undefined");}).catch(()=>{if(active)setSegmentation(false);});return()=>{active=false;};},[]);
  const [task,setTask]=useState<"extract"|"cartoon"|null>(null);
  const [failure,setFailure]=useState("");
  const [cartoonPreview,setCartoonPreview]=useState<string|null>(null);
@@ -24,7 +24,7 @@ export function GarmentImageWorkbench({draft,disabled,onChange,onBusy}:Props){
  async function extract(){
   if(!draft.image || !draft.category || lock.current)return;
   lock.current=true;setTask("extract");setFailure("");onBusy(true);
-  try{const r=await api<ExtractResult>("/api/images/extract",{method:"POST",json:{image:draft.image,category:draft.category}});if(alive.current)setEditor(r);}
+  try{const {segmentInBrowser}=await import("@/lib/browser-segmentation");const blob=await segmentInBrowser(imageUrl(draft.image)!,draft.category);const form=new FormData();form.set("file",blob,"cutout.png");const saved=await api<{key:string}>("/api/upload",{method:"POST",body:form});const r:ExtractResult={image:saved.key,mask:"",width:0,height:0,notice:"真实图片由本机自动分割；请核对是否选中目标衣物。外套可能包含内搭，遮挡部分不会补画。"};if(alive.current)setEditor(r);}
   catch(e){if(alive.current)setFailure(`提取失败：${errMsg(e)}。请换一张清晰、无遮挡的衣物照片后重试。`);}
   finally{lock.current=false;if(alive.current){setTask(null);onBusy(false);}}
  }
@@ -39,7 +39,7 @@ export function GarmentImageWorkbench({draft,disabled,onChange,onBusy}:Props){
  if(!draft.image)return null;
  const shown=displayImageKey(draft);
  return <section className="space-y-3 border-t border-cocoa/15 pt-4" aria-label="衣物图片处理">
-  <div className="rounded-2xl border border-[#b9cdbd] bg-[#eaf2e8] p-3"><h3 className="flex items-center gap-2 text-sm font-bold"><Scissors className="size-4"/>提取真实衣物</h3><p className="my-2 text-xs text-cocoa/75">按{draft.category?`「${categoryLabel(draft.category)}」`:"所选衣物类型"}去背景，保留真实颜色与纹理，不补画遮挡部分。</p><button type="button" className="btn-ghost w-full" disabled={busy || !draft.category || segmentation!==true} onClick={extract}>{task==="extract"?<><Loader2 className="size-4 animate-spin"/>正在分割衣物…</>:segmentation===null?"检查分割服务…":segmentation?"自动提取并核对":"免费云端暂未开放分割"}</button></div>
+  <div className="rounded-2xl border border-[#b9cdbd] bg-[#eaf2e8] p-3"><h3 className="flex items-center gap-2 text-sm font-bold"><Scissors className="size-4"/>提取真实衣物</h3><p className="my-2 text-xs text-cocoa/75">按{draft.category?`「${categoryLabel(draft.category)}」`:"所选衣物类型"}去背景，保留真实颜色与纹理，不补画遮挡部分。</p><button type="button" className="btn-ghost w-full" disabled={busy || !draft.category || segmentation!==true} onClick={extract}>{task==="extract"?<><Loader2 className="size-4 animate-spin"/>本机分割中，首次需下载模型…</>:segmentation===null?"检查分割服务…":segmentation?"自动提取并核对":"免费云端暂未开放分割"}</button></div>
   {segmentation===false && <p className="text-xs text-cocoa/75">当前免费服务暂不运行分割模型，可保留原图，或配置生图服务生成卡通图；已有分割图继续保留。</p>}
   {!draft.category && <p className="text-xs text-cocoa/75">先在右侧（手机端下方）选择衣物分类，再提取或卡通化。</p>}
   <div className="rounded-2xl border border-[#dbc6b7] bg-[#fff2e6] p-3"><h3 className="flex items-center gap-2 text-sm font-bold"><Paintbrush className="size-4"/>生成卡通风格</h3><p className="my-2 text-xs text-cocoa/75">支持先分割再转卡通，也可直接使用原图。需先在设置中配置生图服务和自己的 API Key，调用可能产生费用。</p>{draft.cutoutImage && <label className="label">使用哪张图生成？<select className="input mt-1" value={cartoonSource} disabled={busy} onChange={e=>setCartoonSource(e.target.value as "original"|"cutout")}><option value="original">原始照片</option><option value="cutout">已提取的真实衣物</option></select></label>}<button type="button" className="btn-ghost w-full" disabled={busy || !draft.category} onClick={cartoon}>{task==="cartoon"?<><Loader2 className="size-4 animate-spin"/>正在画成卡通…</>:"生成卡通衣物图"}</button></div>

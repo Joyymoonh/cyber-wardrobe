@@ -1,0 +1,7 @@
+{
+  "repo": "Xenova/segformer_b2_clothes",
+  "revision": "cb6ac44e641faa309f29561c1afe08d87ef52631",
+  "downloadEndpoint": "https://hf-mirror.com",
+  "source": "https://huggingface.co/mattmdjaga/segformer_b2_clothes",
+  "license": "See upstream model card and training-data terms"
+}

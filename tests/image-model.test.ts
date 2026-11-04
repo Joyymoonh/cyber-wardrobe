@@ -24,7 +24,7 @@ describe("originals and cartoon images",()=>{
  });
  it("does not expose encrypted API keys",async ()=>{await saveImageConfig(uid,{provider:"openai",baseUrl:"https://model.test/v1",model:"mock-image",apiKey:"secret-key"});expect(await imageConfig(uid)).not.toHaveProperty("apiKey");expect(JSON.stringify(db().prepare("SELECT * FROM image_configs").get())).not.toContain("secret-key");});
  it("sends original as an image-edit upload and preserves transparency",async()=>{const fn=vi.fn(async(_url:unknown,req?:RequestInit)=>{expect(req?.body).toBeInstanceOf(FormData);expect((req?.body as FormData).get("image")).toBeInstanceOf(Blob);expect(String((req?.body as FormData).get("prompt"))).toContain("DOLL ALIGNMENT GUIDE");return Response.json({data:[{b64_json:input.toString("base64")}]});});vi.stubGlobal("fetch",fn);const result=await cartoonize(uid,original);expect(result).not.toBe(original);expect(fn).toHaveBeenCalledTimes(1);const image=await sharp(path.join(folder,"uploads",result)).metadata();expect(image.hasAlpha).toBe(true);});
- it("handles Gemini inline image responses",async()=>{await saveImageConfig(uid,{provider:"gemini",baseUrl:"https://model.test/v1beta",model:"mock-image"});vi.stubGlobal("fetch",vi.fn(async(_url:unknown,req?:RequestInit)=>{const body=JSON.parse(req?.body as string);expect(body.contents[0].parts[0].text).toContain("x=61, y=116, width=118, height=103");return Response.json({candidates:[{content:{parts:[{inlineData:{data:input.toString("base64")}}]}}]});}));expect(await cartoonize(uid,original,"top")).toMatch(/\.webp$/);});
+ it("handles Gemini inline image responses",async()=>{await saveImageConfig(uid,{provider:"gemini",baseUrl:"https://model.test/v1beta",model:"mock-image",apiKey:"test-gemini"});vi.stubGlobal("fetch",vi.fn(async(_url:unknown,req?:RequestInit)=>{const body=JSON.parse(req?.body as string);expect(body.contents[0].parts[0].text).toContain("x=61, y=116, width=118, height=103");return Response.json({candidates:[{content:{parts:[{inlineData:{data:input.toString("base64")}}]}}]});}));expect(await cartoonize(uid,original,"top")).toMatch(/\.webp$/);});
  it("rejects access to another user's original",async()=>await expect(cartoonize(crypto.randomUUID(),original)).rejects.toThrow("原图不存在"));
  it("does not replace the original if the model returns text",async()=>{vi.stubGlobal("fetch",vi.fn(async()=>Response.json({candidates:[{content:{parts:[{text:"done"}]}}]})));await expect(cartoonize(uid,original)).rejects.toThrow("没有返回图片");expect(await fs.readFile(path.join(folder,"uploads",original))).toBeTruthy();});
 });
@@ -39,4 +39,15 @@ it("uses the native Alibaba image edit contract and reports quota errors",async(
   return Response.json({message:"free quota exhausted"},{status:403});
  }));
  await expect(cartoonize(uid,original,"top")).rejects.toThrow("free quota exhausted");
+});
+
+it("sends Seedream edits through generations and refuses a provider switch with no new key",async()=>{
+ await expect(saveImageConfig(uid,{provider:"ark",baseUrl:"https://ark.test/api/v3",model:"doubao-seedream-5-0-pro-260628"})).rejects.toThrow("新 API Key");
+ await saveImageConfig(uid,{provider:"ark",baseUrl:"https://ark.test/api/v3",model:"doubao-seedream-5-0-pro-260628",apiKey:"ark-test"});
+ vi.stubGlobal("fetch",vi.fn(async(url:unknown,req?:RequestInit)=>{
+  expect(String(url).endsWith("/images/generations")).toBe(true);
+  const body=JSON.parse(String(req?.body));expect(body.image).toMatch(/^data:image\/webp;base64,/);expect(body.sequential_image_generation).toBe("disabled");
+  return Response.json({data:[{b64_json:input.toString("base64")}]});
+ }));
+ expect(await cartoonize(uid,original,"top")).toMatch(/\.webp$/);
 });

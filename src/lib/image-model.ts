@@ -7,15 +7,16 @@ import { categoryLabel, type Category } from "./constants";
 import { HttpError } from "./auth";
 import { assertPublicUrl } from "./llm";
 import { downloadImage, imagePath, readStoredImage, MAX_UPLOAD_BYTES, saveImage } from "./images";
-export const imageConfigSchema=z.object({provider:z.enum(["openai","gemini","dashscope"]),baseUrl:z.string().trim().url().max(300),model:z.string().trim().min(1,"请填写图片编辑模型").max(120),apiKey:z.string().trim().max(500).optional()});
-type ImageConfig={provider:"openai"|"gemini"|"dashscope";baseUrl:string;model:string;apiKey?:string|null};
+export const imageConfigSchema=z.object({provider:z.enum(["openai","gemini","dashscope","ark"]),baseUrl:z.string().trim().url().max(300),model:z.string().trim().min(1,"请填写图片编辑模型").max(120),apiKey:z.string().trim().max(500).optional()});
+type ImageConfig={provider:"openai"|"gemini"|"dashscope"|"ark";baseUrl:string;model:string;apiKey?:string|null};
 export async function imageConfig(userId:string,secret=false) {
  const r=await db().prepare("SELECT * FROM image_configs WHERE user_id=?").get(userId) as {provider:ImageConfig["provider"];base_url:string;model:string;api_key_enc:string|null}|undefined;
  if(!r)return null;
  return {provider:r.provider,baseUrl:r.base_url,model:r.model,hasKey:!!r.api_key_enc,...(secret?{apiKey:r.api_key_enc?decrypt(r.api_key_enc):null}:{})};
 }
 export async function saveImageConfig(userId:string,input:z.infer<typeof imageConfigSchema>){
- const old=await db().prepare("SELECT api_key_enc FROM image_configs WHERE user_id=?").get(userId) as {api_key_enc:string|null}|undefined;
+ const old=await db().prepare("SELECT api_key_enc, provider FROM image_configs WHERE user_id=?").get(userId) as {api_key_enc:string|null;provider:string}|undefined;
+ if(old && old.provider!==input.provider && !input.apiKey)throw new HttpError(400,"切换服务商时请填写对应的新 API Key");
  const key=input.apiKey===undefined?old?.api_key_enc:input.apiKey?encrypt(input.apiKey):null;
  await db().prepare("INSERT INTO image_configs(user_id,provider,base_url,model,api_key_enc) VALUES (?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET provider=excluded.provider,base_url=excluded.base_url,model=excluded.model,api_key_enc=excluded.api_key_enc").run(userId,input.provider,input.baseUrl,input.model,key||null);
 }
@@ -27,7 +28,11 @@ export async function cartoonize(userId:string,key:string,category?:Category){
  const cfg=await imageConfig(userId,true);if(!cfg)throw new HttpError(400,"先到设置中配置「卡通图片模型」，需要支持图片编辑的模型");
  const base=cfg.baseUrl.replace(/\/+$/,"");const signal=AbortSignal.timeout(120_000);
  let url:string,body:BodyInit,headers:Record<string,string>;
- if(cfg.provider==="dashscope"){
+ if(cfg.provider==="ark"){
+  url=`${base}/images/generations`;
+  headers={"Content-Type":"application/json",...(cfg.apiKey?{Authorization:`Bearer ${cfg.apiKey}`}:{})};
+  body=JSON.stringify({model:cfg.model,prompt,image:`data:image/webp;base64,${input.toString("base64")}`,size:"2K",response_format:"url",stream:false,watermark:false,sequential_image_generation:"disabled"});
+ }else if(cfg.provider==="dashscope"){
   url=`${base}/services/aigc/multimodal-generation/generation`;
   headers={"Content-Type":"application/json",...(cfg.apiKey?{Authorization:`Bearer ${cfg.apiKey}`}:{})};
   body=JSON.stringify({model:cfg.model,input:{messages:[{role:"user",content:[{image:`data:image/webp;base64,${input.toString("base64")}`},{text:prompt}]}]},parameters:{n:1,watermark:false,prompt_extend:false}});
@@ -60,6 +65,6 @@ export async function cartoonize(userId:string,key:string,category?:Category){
   const image=parts?.find(p=>typeof p.image==="string")?.image;
   if(image)return downloadImage(userId,image,undefined,signal);
  }
- if(cfg.provider==="openai" && typeof data.data?.[0]?.url==="string")return downloadImage(userId,data.data[0].url,undefined,signal);
+ if((cfg.provider==="openai" || cfg.provider==="ark") && typeof data.data?.[0]?.url==="string")return downloadImage(userId,data.data[0].url,undefined,signal);
  throw new HttpError(502,"该模型没有返回图片。请使用支持图生图的模型，文字识别模型不能用于卡通化");
 }

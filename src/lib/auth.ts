@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -68,7 +69,7 @@ export async function destroySession(): Promise<void> {
   store.delete(COOKIE);
 }
 
-export async function currentUser(): Promise<User | null> {
+export const currentUser = cache(async (): Promise<User | null> => {
   const authorization = (await headers()).get("authorization");
   const token = authorization?.startsWith("Bearer ") ? authorization.slice(7) : (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
@@ -79,7 +80,7 @@ export async function currentUser(): Promise<User | null> {
     )
     .get(sha256(token), Date.now()) as User | undefined;
   return row ? { ...row } : null;
-}
+});
 
 export async function requireUser(): Promise<User> {
   const user = await currentUser();

@@ -7,12 +7,13 @@ export const metadata = { title: "智能搭配" };
 
 export default async function OutfitsPage() {
   const user = await pageUser();
+  const [items, saved, settings, body] = await Promise.all([listItems(user.id), listOutfits(user.id), getPublicLlmSettings(user.id), getBody(user.id)]);
   return (
     <OutfitsView
-      items={await listItems(user.id)}
-      initialSaved={await listOutfits(user.id)}
-      hasLlm={!!await getPublicLlmSettings(user.id)}
-      hasBody={!!await getBody(user.id)}
+      items={items}
+      initialSaved={saved}
+      hasLlm={!!settings}
+      hasBody={!!body}
     />
   );
 }

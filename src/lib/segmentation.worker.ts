@@ -2,6 +2,7 @@ import { pipeline, env, RawImage, type ImageSegmentationPipeline } from '@huggin
 import { GARMENT_LABELS } from './garment-mask';
 import type { Category } from './constants';
 env.allowRemoteModels = false;
+env.allowLocalModels = true;
 env.localModelPath = '/models/';
 if (env.backends.onnx.wasm) {
   env.backends.onnx.wasm.wasmPaths = '/onnx/';

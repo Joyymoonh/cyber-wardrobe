@@ -46,7 +46,7 @@ it("sends Seedream edits through generations and refuses a provider switch with 
  await saveImageConfig(uid,{provider:"ark",baseUrl:"https://ark.test/api/v3",model:"doubao-seedream-5-0-pro-260628",apiKey:"ark-test"});
  vi.stubGlobal("fetch",vi.fn(async(url:unknown,req?:RequestInit)=>{
   expect(String(url).endsWith("/images/generations")).toBe(true);
-  const body=JSON.parse(String(req?.body));expect(body.image).toMatch(/^data:image\/webp;base64,/);expect(body.sequential_image_generation).toBe("disabled");
+  const body=JSON.parse(String(req?.body));expect(body.image).toHaveLength(2);expect(body.image[0]).toMatch(/^data:image\/webp;base64,/);expect(body.image[1]).toMatch(/^data:image\/png;base64,/);expect(body.prompt).toContain("IMAGE 2");expect(body.sequential_image_generation).toBe("disabled");
   return Response.json({data:[{b64_json:input.toString("base64")}]});
  }));
  expect(await cartoonize(uid,original,"top")).toMatch(/\.webp$/);

@@ -81,7 +81,7 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
   if (items.length === 0) {
     return (
       <>
-        <PageHeader title="穿搭工作室" />
+        <PageHeader title="智能搭配" />
         <EmptyState icon={Sparkles} title="先往衣柜里放点衣服" desc="至少需要一件上装 + 一件下装（或一条连衣裙），AI 才能开始搭配。" action={<Link href="/wardrobe" className="btn-primary">去添加单品</Link>} />
       </>
     );
@@ -90,7 +90,7 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
   return (
     <>
       <PageHeader
-        title="穿搭工作室"
+        title="智能搭配"
         subtitle="选一个风格，从你的衣柜里组合整套造型"
         action={
           <div role="tablist" aria-label="视图" className="flex rounded-2xl bg-cocoa/5 p-1">
@@ -165,7 +165,7 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
               {!hasBody && <Link href="/body" className="text-xs text-cocoa/75 underline">补充身材信息，搭配更贴合</Link>}
               <button onClick={generate} disabled={loading} className="btn-primary ml-auto px-6">
                 {loading ? <Loader2 className="size-4 animate-spin" aria-hidden /> : results ? <RefreshCw className="size-4" aria-hidden /> : <Wand2 className="size-4" aria-hidden />}
-                {loading ? "造型师思考中…" : results ? "换一批" : "组合造型"}
+                {loading ? "造型师思考中…" : results ? "换一批" : "生成穿搭"}
               </button>
             </div>
           </section>

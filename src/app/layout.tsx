@@ -3,12 +3,12 @@ import { ToastProvider } from "@/components/toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "衣间 · Closet Atelier", template: "%s · 衣间" },
+  title: { default: "赛博衣柜 · Cyber Wardrobe", template: "%s · 赛博衣柜" },
   description: "数字化你的衣柜：拍照导入单品，身材扫描，AI 自动搭配多种风格穿搭。",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f6f5f1",
+  themeColor: "#fff9ef",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Camera, ScanLine, Sparkles, Wand2, KeyRound } from "lucide-react";
 import { currentUser } from "@/lib/auth";
-import Image from "next/image";
+import { HeroWardrobe } from "@/components/art";
 import { Logo } from "@/components/logo";
 
 const FEATURES = [
@@ -31,9 +31,9 @@ export default async function Landing() {
           <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-neon-cyan/30 bg-neon-cyan/10 px-3 py-1 text-xs text-neon-cyan">
             <Sparkles className="size-3.5" aria-hidden /> AI 驱动的数字衣橱
           </p>
-          <h1 className="studio-title text-4xl leading-tight tracking-tight sm:text-6xl">
-            把日常，穿成<br />
-            <span className="neon-text">自己的风格</span>
+          <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
+            把衣柜装进<br />
+            <span className="neon-text">小小衣橱</span>
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-cocoa/75 sm:text-lg">
             拍照导入衣物，扫描身材，让 AI 每天从你已有的衣服里搭出适合你的造型。
@@ -44,13 +44,13 @@ export default async function Landing() {
           </div>
         </div>
 
-        <div className="relative min-h-[440px] overflow-hidden rounded-[28px] bg-[#e9ede5] p-8"><span className="studio-eyebrow">THE EVERYDAY EDIT</span><Image src="/art/doll-female.png" alt="衣间卡通造型人偶" width={480} height={800} className="absolute bottom-0 left-1/2 h-[360px] w-auto -translate-x-1/2 object-contain"/><div className="absolute bottom-7 left-7 rounded-xl border border-white/70 bg-paper/85 p-4 backdrop-blur"><p className="studio-eyebrow">PERSONAL STYLE</p><p className="studio-title mt-2 text-xl">属于你的衣间</p></div></div>
+        <HeroWardrobe className="mx-auto w-full max-w-md" />
       </section>
 
       <section className="mt-24 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (
           <div key={f.title} className="glass p-6 transition hover:-translate-y-1 hover:border-neon-violet/30">
-            <div className="mb-4 grid size-11 place-items-center rounded-2xl bg-[#e9ede5]">
+            <div className="mb-4 grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-neon-violet/30 to-neon-cyan/20">
               <f.icon className="size-5 text-neon-cyan" aria-hidden />
             </div>
             <h2 className="font-display text-lg font-semibold">{f.title}</h2>

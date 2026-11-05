@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useId } from "react";
-
+import { Robot } from "./art";
 import { X } from "lucide-react";
 import clsx from "clsx";
 import { colorHex } from "@/lib/constants";
 
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
   return (
-    <header className="mb-9 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="studio-title text-3xl sm:text-4xl">{title}</h1>
-        {subtitle && <p className="mt-2 text-sm text-cocoa/55">{subtitle}</p>}
+        <h1 className="font-display text-2xl font-bold sm:text-3xl">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-cocoa/75">{subtitle}</p>}
       </div>
       {action}
     </header>
@@ -36,7 +36,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
       onClick={(e) => e.target === ref.current && onClose()}
       aria-labelledby={titleId}
       className={clsx(
-        "m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-y-auto rounded-t-3xl border border-cocoa/10 bg-ink-900 p-0 text-cocoa backdrop:bg-[#242b24]/35 backdrop:backdrop-blur-sm",
+        "m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-y-auto rounded-t-3xl border border-cocoa/10 bg-ink-900 p-0 text-cocoa backdrop:bg-black/70 backdrop:backdrop-blur-sm",
         "sm:m-auto sm:rounded-3xl",
         wide ? "sm:max-w-3xl" : "sm:max-w-lg",
       )}
@@ -99,7 +99,7 @@ export function EmptyState({ icon: _Icon, title, desc, action }: { icon: React.E
   void _Icon;
   return (
     <div className="glass flex flex-col items-center px-6 py-16 text-center">
-      <div className="mb-5 grid size-16 place-items-center rounded-full bg-[#e9ede5] font-serif text-3xl text-[#40594b]">＋</div>
+      <Robot className="mb-4 h-28 w-28" holding="hanger" />
       <h2 className="font-display text-lg font-semibold">{title}</h2>
       <p className="mt-1.5 max-w-sm text-sm text-cocoa/75">{desc}</p>
       {action && <div className="mt-6">{action}</div>}

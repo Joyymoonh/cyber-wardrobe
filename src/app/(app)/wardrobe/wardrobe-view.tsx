@@ -54,7 +54,7 @@ export function WardrobeView({ initialItems, hasLlm }: { initialItems: Item[]; h
         }
       />
 
-      <section className="studio-hero mb-7"><p className="studio-eyebrow">YOUR PERSONAL COLLECTION</p><h2 className="studio-title mt-4 max-w-md text-3xl leading-tight sm:text-4xl">让喜欢的衣服，<br/>成为日常的灵感。</h2><p className="mt-4 max-w-sm text-sm leading-7 text-cocoa/55">收藏你的风格，重新发现每一件单品的可能。</p></section>
+      <section className="studio-hero mb-7"><p className="studio-eyebrow">YOUR PERSONAL COLLECTION</p><h2 className="studio-title mt-2 text-xl leading-tight sm:text-2xl">每一件喜欢，都有新的可能。</h2><p className="mt-2 max-w-sm text-xs leading-6 text-cocoa/55">收藏你的风格，重新发现每一件单品的可能。</p></section>
       <div className="mb-5 flex justify-end gap-2" role="group" aria-label="衣柜视图">{[["cabinet", "分类陈列"], ["list", "单品列表"]].map(([id,label]) => <button key={id} className={clsx("chip",view === id && "chip-on")} aria-pressed={view === id} onClick={() => changeView(id)}>{label}</button>)}</div>
       {items.length === 0 ? (
         <div className="cabinet"><HeroWardrobe className="mx-auto h-64 w-full max-w-sm" />

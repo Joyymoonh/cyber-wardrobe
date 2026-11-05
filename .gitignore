@@ -47,3 +47,6 @@ next-env.d.ts
 /artifacts
 
 /miniprogram/project.private.config.json
+
+# Local promotional exports may contain private account photos
+/promo/

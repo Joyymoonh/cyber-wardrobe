@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useId } from "react";
-import { Robot } from "./art";
+import { WardrobeIllustration } from "./art";
 import { X } from "lucide-react";
 import clsx from "clsx";
 import { colorHex } from "@/lib/constants";
@@ -99,7 +99,7 @@ export function EmptyState({ icon: _Icon, title, desc, action }: { icon: React.E
   void _Icon;
   return (
     <div className="glass flex flex-col items-center px-6 py-16 text-center">
-      <Robot className="mb-4 h-28 w-28" holding="hanger" />
+      <WardrobeIllustration className="mb-4 h-28 w-28" />
       <h2 className="font-display text-lg font-semibold">{title}</h2>
       <p className="mt-1.5 max-w-sm text-sm text-cocoa/75">{desc}</p>
       {action && <div className="mt-6">{action}</div>}

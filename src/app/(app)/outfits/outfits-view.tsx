@@ -8,7 +8,7 @@ import { SEASONS, STYLES, styleLabel, type Item, type Outfit, type Season, type 
 import { api, errMsg } from "@/lib/client";
 import { EmptyState, PageHeader } from "@/components/ui";
 import { useToast } from "@/components/toast";
-import { OutfitDoll } from "@/components/outfit-doll";
+import { OutfitFlatLay } from "@/components/outfit-flat-lay";
 
 type Generated = { title: string; itemIds: string[]; reasoning: string; tips: string; source: "ai" | "rule" };
 
@@ -21,7 +21,6 @@ function currentSeason(): Season {
 
 export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: Item[]; initialSaved: Outfit[]; hasLlm: boolean; hasBody: boolean }) {
   const toast = useToast();
-  const [doll,setDoll]=useState<"female"|"male">("female");
   const [style, setStyle] = useState<StyleId>("minimal");
   const [season, setSeason] = useState<Season>(currentSeason);
   const [occasion, setOccasion] = useState("日常");
@@ -103,7 +102,6 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
         }
       />
 
-      <div className="mb-5 flex items-center gap-2" role="group" aria-label="固定人偶款式"><span className="text-sm">搭配人偶</span>{(["female","male"] as const).map(m=><button key={m} className={clsx("chip",doll===m&&"chip-on")} aria-pressed={doll===m} onClick={()=>setDoll(m)}>{m==="female"?"女款人偶":"男款人偶"}</button>)}</div>
       {view === "create" ? (
         <>
           <section className="glass mb-8 space-y-5 p-5 sm:p-6" aria-label="搭配条件">
@@ -187,7 +185,7 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
               {results.map((o, idx) => {
                 const key = `${idx}-${o.itemIds.join()}`;
                 return (
-                  <OutfitCard model={doll} key={key} title={o.title} items={o.itemIds.map((id) => byId.get(id)).filter(Boolean) as Item[]} reasoning={o.reasoning} tips={o.tips} source={o.source} delay={idx * 80}>
+                  <OutfitCard key={key} title={o.title} items={o.itemIds.map((id) => byId.get(id)).filter(Boolean) as Item[]} reasoning={o.reasoning} tips={o.tips} source={o.source} delay={idx * 80}>
                     <button onClick={() => save(o, key)} disabled={savedKeys.has(key)} className="btn-ghost w-full">
                       {savedKeys.has(key) ? <BookmarkCheck className="size-4 text-neon-cyan" aria-hidden /> : <Bookmark className="size-4" aria-hidden />}
                       {savedKeys.has(key) ? "已收藏" : "收藏这套"}
@@ -204,7 +202,6 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {saved.map((o, idx) => (
             <OutfitCard
-              model={doll}
               key={o.id}
               title={o.title}
               subtitle={`${styleLabel(o.style)}${o.occasion ? ` · ${o.occasion}` : ""} · ${new Date(o.createdAt).toLocaleDateString("zh-CN")}`}
@@ -226,9 +223,9 @@ export function OutfitsView({ items, initialSaved, hasLlm, hasBody }: { items: I
 }
 
 function OutfitCard({
-  title, subtitle, items, reasoning, tips, source, children, delay = 0, model,
+  title, subtitle, items, reasoning, tips, source, children, delay = 0,
 }: {
-  model: "female"|"male"; title: string; subtitle?: string; items: Item[]; reasoning?: string | null; tips?: string | null; source: "ai" | "rule"; children?: React.ReactNode; delay?: number;
+  title: string; subtitle?: string; items: Item[]; reasoning?: string | null; tips?: string | null; source: "ai" | "rule"; children?: React.ReactNode; delay?: number;
 }) {
   return (
     <article className="glass flex animate-fade-up flex-col overflow-hidden" style={{ animationDelay: `${delay}ms` }}>
@@ -244,7 +241,7 @@ function OutfitCard({
       {items.length === 0 ? (
         <p className="px-5 text-sm text-cocoa/75">这套搭配里的单品已被删除</p>
       ) : (
-        <OutfitDoll items={items} model={model}/>
+        <OutfitFlatLay items={items} />
       )}
       <ul className="mt-3 flex flex-wrap gap-1.5 px-5">
         {items.map((i) => <li key={i.id} className="rounded-full bg-cocoa/5 px-2 py-0.5 text-[11px] text-cocoa/75">{i.name}</li>)}

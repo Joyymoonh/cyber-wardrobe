@@ -4,7 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { Heart, Plus, Search, Shirt } from "lucide-react";
 import clsx from "clsx";
 import { CATEGORIES, STYLES, categoryLabel, type Item } from "@/lib/constants";
-import { GarmentArt, HeroWardrobe, Robot } from "@/components/art";
+import { GarmentArt, HeroWardrobe, WardrobeIllustration } from "@/components/art";
 import { displayImageKey } from "@/lib/item-images";
 import { imageUrl } from "@/lib/client";
 import { EmptyState, PageHeader, Swatch } from "@/components/ui";
@@ -54,7 +54,7 @@ export function WardrobeView({ initialItems, hasLlm }: { initialItems: Item[]; h
         }
       />
 
-      <div className="cozy-banner mb-6 flex items-center justify-between gap-4 p-5 sm:px-8"><div><p className="text-xs tracking-widest text-cocoa/75">A LITTLE ROOM FOR YOUR STYLE</p><h2 className="mt-2 text-xl font-bold sm:text-2xl">每一件喜欢，都有自己的位置</h2><p className="mt-2 text-sm text-cocoa/65">整理一点点，穿搭的灵感就多一点。</p></div><Robot className="hidden h-28 w-28 shrink-0 sm:block" holding="hanger" /></div>
+      <div className="cozy-banner mb-6 flex items-center justify-between gap-4 p-5 sm:px-8"><div><p className="text-xs tracking-widest text-cocoa/75">A LITTLE ROOM FOR YOUR STYLE</p><h2 className="mt-2 text-xl font-bold sm:text-2xl">每一件喜欢，都有自己的位置</h2><p className="mt-2 text-sm text-cocoa/65">整理一点点，穿搭的灵感就多一点。</p></div><WardrobeIllustration className="hidden h-28 w-28 shrink-0 sm:block" /></div>
       <div className="mb-5 flex justify-end gap-2" role="group" aria-label="衣柜视图">{[["cabinet", "小小衣柜"], ["list", "单品列表"]].map(([id,label]) => <button key={id} className={clsx("chip",view === id && "chip-on")} aria-pressed={view === id} onClick={() => changeView(id)}>{label}</button>)}</div>
       {items.length === 0 ? (
         <div className="cabinet"><HeroWardrobe className="mx-auto h-64 w-full max-w-sm" />

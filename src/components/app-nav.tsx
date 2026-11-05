@@ -27,9 +27,9 @@ export function AppNav({ nickname }: { nickname: string }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-cocoa/5 bg-ink-950/60 p-5 backdrop-blur-xl lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-cocoa/5 bg-[#edeee7] px-6 py-8 lg:flex">
         <Logo />
-        <nav className="mt-10 flex flex-col gap-1" aria-label="主导航">
+        <nav className="mt-14 flex flex-col gap-1" aria-label="主导航">
           {NAV.map((n) => {
             const active = pathname.startsWith(n.href);
             return (
@@ -38,8 +38,8 @@ export function AppNav({ nickname }: { nickname: string }) {
                 href={n.href}
                 aria-current={active ? "page" : undefined}
                 className={clsx(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
-                  active ? "bg-gradient-to-r from-neon-violet/25 to-transparent text-cocoa shadow-[inset_2px_0_0_var(--color-neon-violet)]" : "text-cocoa/75 hover:bg-cocoa/5 hover:text-cocoa",
+                  "flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm transition",
+                  active ? "bg-[#354d40] text-white shadow-sm" : "text-cocoa/75 hover:bg-cocoa/5 hover:text-cocoa",
                 )}
               >
                 <n.icon className="size-4.5" aria-hidden />
@@ -49,7 +49,7 @@ export function AppNav({ nickname }: { nickname: string }) {
           })}
         </nav>
         <div className="mt-auto flex items-center gap-3 rounded-2xl border border-cocoa/5 bg-cocoa/[0.03] p-3">
-          <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-neon-cyan/40 to-neon-violet/40 text-sm font-semibold">
+          <span className="grid size-9 place-items-center rounded-full bg-[#d8dfce] text-sm font-semibold">
             {nickname.slice(0, 1)}
           </span>
           <span className="min-w-0 flex-1 truncate text-sm">{nickname}</span>
@@ -62,7 +62,7 @@ export function AppNav({ nickname }: { nickname: string }) {
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="主导航"
-        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 rounded-3xl border border-cocoa/10 bg-ink-900/80 p-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 rounded-3xl border border-cocoa/10 bg-paper/95 p-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden"
       >
         {NAV.map((n) => {
           const active = pathname.startsWith(n.href);
@@ -71,7 +71,7 @@ export function AppNav({ nickname }: { nickname: string }) {
               key={n.href}
               href={n.href}
               aria-current={active ? "page" : undefined}
-              className={clsx("flex flex-col items-center gap-1 rounded-2xl py-2 text-[11px] transition", active ? "bg-cocoa/10 text-cocoa" : "text-cocoa/75")}
+              className={clsx("flex flex-col items-center gap-1 rounded-2xl py-2 text-[11px] transition", active ? "bg-[#e7ece1] text-cocoa" : "text-cocoa/75")}
             >
               <n.icon className={clsx("size-5", active && "text-neon-cyan")} aria-hidden />
               {n.label}

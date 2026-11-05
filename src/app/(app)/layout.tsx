@@ -8,7 +8,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="relative z-10 min-h-dvh lg:pl-64">
       <AppNav nickname={user.nickname} />
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12 lg:pt-10">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-8 lg:pb-12 lg:pt-12">{children}</main>
     </div>
   );
 }

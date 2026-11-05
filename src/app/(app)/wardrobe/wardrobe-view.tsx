@@ -4,7 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { Heart, Plus, Search, Shirt } from "lucide-react";
 import clsx from "clsx";
 import { CATEGORIES, STYLES, categoryLabel, type Item } from "@/lib/constants";
-import { GarmentArt, HeroWardrobe, Robot } from "@/components/art";
+import { GarmentArt, HeroWardrobe } from "@/components/art";
 import { displayImageKey } from "@/lib/item-images";
 import { imageUrl } from "@/lib/client";
 import { EmptyState, PageHeader, Swatch } from "@/components/ui";
@@ -54,8 +54,8 @@ export function WardrobeView({ initialItems, hasLlm }: { initialItems: Item[]; h
         }
       />
 
-      <div className="cozy-banner mb-6 flex items-center justify-between gap-4 p-5 sm:px-8"><div><p className="text-xs tracking-widest text-cocoa/75">A LITTLE ROOM FOR YOUR STYLE</p><h2 className="mt-2 text-xl font-bold sm:text-2xl">每一件喜欢，都有自己的位置</h2><p className="mt-2 text-sm text-cocoa/65">整理一点点，穿搭的灵感就多一点。</p></div><Robot className="hidden h-28 w-28 shrink-0 sm:block" holding="hanger" /></div>
-      <div className="mb-5 flex justify-end gap-2" role="group" aria-label="衣柜视图">{[["cabinet", "小小衣柜"], ["list", "单品列表"]].map(([id,label]) => <button key={id} className={clsx("chip",view === id && "chip-on")} aria-pressed={view === id} onClick={() => changeView(id)}>{label}</button>)}</div>
+      <section className="studio-hero mb-7"><p className="studio-eyebrow">YOUR PERSONAL COLLECTION</p><h2 className="studio-title mt-4 max-w-md text-3xl leading-tight sm:text-4xl">让喜欢的衣服，<br/>成为日常的灵感。</h2><p className="mt-4 max-w-sm text-sm leading-7 text-cocoa/55">收藏你的风格，重新发现每一件单品的可能。</p></section>
+      <div className="mb-5 flex justify-end gap-2" role="group" aria-label="衣柜视图">{[["cabinet", "分类陈列"], ["list", "单品列表"]].map(([id,label]) => <button key={id} className={clsx("chip",view === id && "chip-on")} aria-pressed={view === id} onClick={() => changeView(id)}>{label}</button>)}</div>
       {items.length === 0 ? (
         <div className="cabinet"><HeroWardrobe className="mx-auto h-64 w-full max-w-sm" />
         <EmptyState
@@ -97,10 +97,10 @@ export function WardrobeView({ initialItems, hasLlm }: { initialItems: Item[]; h
           {filtered.length === 0 ? (
             <p className="py-16 text-center text-sm text-cocoa/75">没有符合条件的单品</p>
           ) : (
-            view === "cabinet" ? <div className="cabinet"><div className="cabinet-title">我的小小衣柜</div>{[
-              { name: "挂杆 · 今天想穿哪一件？", cats: ["top", "outer", "dress"], hanging: true },
-              { name: "抽屉 · 裤装与半裙", cats: ["bottom"], hanging: false },
-              { name: "置物架 · 鞋包与小心思", cats: ["shoes", "bag", "accessory"], hanging: false },
+            view === "cabinet" ? <div className="cabinet"><div className="cabinet-title">THE WARDROBE</div>{[
+              { name: "上装、外套与裙装", cats: ["top", "outer", "dress"], hanging: true },
+              { name: "裤装与半裙", cats: ["bottom"], hanging: false },
+              { name: "鞋履、包袋与配饰", cats: ["shoes", "bag", "accessory"], hanging: false },
             ].map(section => { const garments = filtered.filter(i => section.cats.includes(i.category)); return <details key={section.name} open className={clsx("cabinet-section", section.hanging && "hanging")}><summary>{section.name}<span className="ml-2 text-xs opacity-50">{garments.length} 件</span></summary>{garments.length ? <ul className="cabinet-items">{garments.map(item => <li key={item.id} className={clsx(newId === item.id && "new-garment")}><ItemCard item={item} onClick={() => setEditing(item)} /></li>)}</ul> : <p className="p-8 text-center text-sm text-cocoa/75">空出一点位置，留给下一件喜欢的衣服。</p>}</details>; })}</div>
             : <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">{filtered.map(item => <li key={item.id} className={clsx(newId === item.id && "new-garment")}><ItemCard item={item} onClick={() => setEditing(item)} /></li>)}</ul>
           )}
@@ -121,7 +121,7 @@ export function ItemCard({ item, onClick, compact }: { item: Item; onClick?: () 
       onClick={onClick}
       className="garment-card group block w-full overflow-hidden rounded-2xl text-left transition hover:-translate-y-0.5 hover:border-neon-violet/40 focus-visible:outline-2 focus-visible:outline-neon-cyan"
     >
-      <div className="relative aspect-[4/5] rounded-t-2xl bg-[#f5eddf]">
+      <div className="relative aspect-[4/5] rounded-t-2xl bg-[#f0f0ea]">
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element -- private per-user images served by our API
           <img src={src} alt={item.name} loading="lazy" className="size-full object-contain p-3 transition duration-500 group-hover:scale-105" />

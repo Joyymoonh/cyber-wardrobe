@@ -30,10 +30,10 @@ export function AuthForm({ mode, inviteRequired = false }: { mode: "login" | "re
   }
 
   return (
-    <form onSubmit={onSubmit} className="glass w-full max-w-sm animate-fade-up space-y-4 p-7" noValidate>
+    <form onSubmit={onSubmit} className="glass w-full max-w-md animate-fade-up space-y-5 p-8 sm:p-10" noValidate>
       <div>
-        <h1 className="font-display text-2xl font-bold">{isRegister ? "创建账号" : "欢迎回来"}</h1>
-        <p className="mt-1 text-sm text-cocoa/75">{isRegister ? "几秒钟，开启你的数字衣橱" : "登录继续管理你的衣柜"}</p>
+        <h1 className="studio-title text-3xl">{isRegister ? "创建账号" : "欢迎回来"}</h1>
+        <p className="mt-1 text-sm text-cocoa/75">{isRegister ? "为你的风格，开启一间衣间" : "欢迎回到你的个人衣间"}</p>
       </div>
       <div>
         <label htmlFor="email" className="label">邮箱</label>

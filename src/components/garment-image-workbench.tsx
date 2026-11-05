@@ -6,6 +6,7 @@ import {api,errMsg,imageUrl} from "@/lib/client";
 import {categoryLabel} from "@/lib/constants";
 import {displayImageKey,type ImageMode} from "@/lib/item-images";
 import {Modal} from "./ui";
+import {MaskRefiner} from "./mask-refiner";
 import type {ItemDraft} from "@/app/(app)/wardrobe/item-form";
 type Props={draft:ItemDraft;disabled:boolean;onChange:(patch:Partial<ItemDraft>)=>void;onBusy:(busy:boolean)=>void};
 type ExtractResult={image:string;mask:string;width:number;height:number;notice:string};
@@ -49,6 +50,6 @@ export function GarmentImageWorkbench({draft,disabled,onChange,onBusy}:Props){
   {failure && <p role="alert" className="rounded-xl bg-[#fbe4df] p-3 text-sm">{failure}</p>}
   {cartoonPreview && <div className="glass space-y-3 p-3"><p className="text-xs">卡通预览 · 请核对款式与颜色</p><img src={imageUrl(cartoonPreview)!} alt="待确认的卡通衣物" className="transparency-grid w-full rounded-xl"/><button type="button" disabled={busy} className="btn-primary w-full" onClick={()=>{onChange({cartoonImage:cartoonPreview,imageMode:"cartoon"});setCartoonPreview(null);}}>采用卡通图</button><button type="button" className="btn-ghost w-full" onClick={()=>setCartoonPreview(null)}>不采用，保留原来的图</button></div>}
   {(draft.cutoutImage || draft.cartoonImage) && <div className="space-y-2"><p className="label">衣柜展示哪张图？</p><div className="flex flex-wrap gap-1">{([['original','原图'],['cutout','真实提取'],['cartoon','卡通图']] as [ImageMode,string][]).map(([id,label])=><button type="button" key={id} disabled={busy || id==="cutout"&&!draft.cutoutImage || id==="cartoon"&&!draft.cartoonImage} className={`chip ${mode===id?"chip-on":""}`} aria-pressed={mode===id} onClick={()=>onChange({imageMode:id})}>{label}</button>)}</div>{shown && <img src={imageUrl(shown)!} alt="当前衣柜展示图" className="transparency-grid w-full rounded-xl"/>}<p className="text-xs text-cocoa/75">三种图片独立保留，保存单品后生效。</p></div>}
-  {editor && <Modal open onClose={()=>setEditor(null)} title="核对真实提取结果"><img src={imageUrl(editor.image)!} alt="自动分割的真实衣物" className="transparency-grid mx-auto max-h-80 w-full object-contain rounded-2xl"/><p className="my-4 text-sm">{editor.notice}如果选错衣物或边缘不完整，请不要采用，换一张照片后重试。</p><div className="flex gap-2"><button type="button" className="btn-ghost" onClick={()=>setEditor(null)}>不采用</button><button type="button" className="btn-primary" onClick={()=>{onChange({cutoutImage:editor.image,imageMode:"cutout"});setCartoonSource("cutout");setEditor(null);}}>采用真实提取图</button></div></Modal>}
+  {editor && <Modal open onClose={()=>setEditor(null)} title="核对真实提取结果"><MaskRefiner original={draft.image} result={editor.image} onResult={image=>setEditor(prev=>prev?{...prev,image}:prev)}/><p className="my-4 text-sm">{editor.notice}如果选错衣物或边缘不完整，请不要采用，添加保留 / 排除点重试，或使用局部修正。</p><div className="flex gap-2"><button type="button" className="btn-ghost" onClick={()=>setEditor(null)}>不采用</button><button type="button" className="btn-primary" onClick={()=>{onChange({cutoutImage:editor.image,imageMode:"cutout"});setCartoonSource("cutout");setEditor(null);}}>采用真实提取图</button></div></Modal>}
  </section>;
 }

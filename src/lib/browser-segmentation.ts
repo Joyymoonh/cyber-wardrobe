@@ -1,6 +1,6 @@
 import type { Category } from './constants';
 type Mask = { data: Uint8Array; width: number; height: number; channels: number };
-export async function segmentInBrowser(url: string, category: Category): Promise<Blob> {
+export async function segmentInBrowser(url: string, category: Category, points:{x:number;y:number;label:number}[]): Promise<Blob> {
   const response = await fetch(url);
   if (!response.ok) throw new Error('原图读取失败');
   const bitmap = await createImageBitmap(await response.blob());
@@ -17,7 +17,7 @@ export async function segmentInBrowser(url: string, category: Category): Promise
     const finish = () => { clearTimeout(timer); worker.terminate(); };
     worker.onerror = () => { finish(); reject(new Error('分割模型加载失败，请刷新后重试')); };
     worker.onmessage = e => { finish(); if (e.data.error) reject(new Error(e.data.error)); else resolve(e.data.masks); };
-    worker.postMessage({ pixels: pixels.data, width: canvas.width, height: canvas.height, category });
+    worker.postMessage({ pixels: pixels.data, width: canvas.width, height: canvas.height, category, points });
   });
   let count = 0;
   for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
@@ -31,6 +31,7 @@ export async function segmentInBrowser(url: string, category: Category): Promise
     pixels.data[index] = Math.round(pixels.data[index] * alpha / 255);
     if (pixels.data[index]) count++;
   }
+  if (count < canvas.width*canvas.height*0.01 || count > canvas.width*canvas.height*0.98) throw new Error("提取范围异常，未采用结果；请裁掉无关内容后重试");
   if (!count) throw new Error('分割结果为空，请更换清晰照片');
   ctx.putImageData(pixels, 0, 0);
   return new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('分割图片生成失败')), 'image/png'));

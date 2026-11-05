@@ -37,7 +37,7 @@ export async function cartoonize(userId:string,key:string,category?:Category, do
  if(cfg.provider==="ark"){
   url=`${base}/images/generations`;
   headers={"Content-Type":"application/json",...(cfg.apiKey?{Authorization:`Bearer ${cfg.apiKey}`}:{})};
-  body=JSON.stringify({model:cfg.model,prompt:referencePrompt,image:[`data:image/webp;base64,${input.toString("base64")}`,`data:image/png;base64,${referenceCanvas!.toString("base64")}`],size:"2K",response_format:"url",stream:false,watermark:false,sequential_image_generation:"disabled"});
+  body=JSON.stringify({model:cfg.model,prompt:referencePrompt,image:[`data:image/webp;base64,${input.toString("base64")}`,`data:image/png;base64,${referenceCanvas!.toString("base64")}`],size:"2K",response_format:"url",stream:false,watermark:false});
  }else if(cfg.provider==="dashscope"){
   url=`${base}/services/aigc/multimodal-generation/generation`;
   headers={"Content-Type":"application/json",...(cfg.apiKey?{Authorization:`Bearer ${cfg.apiKey}`}:{})};
